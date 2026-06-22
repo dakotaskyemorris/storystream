@@ -3,7 +3,7 @@ import { StoryStreamClient } from "../story-stream-client";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Writing Studio | StoryStream",
+    absolute: "StoryStream",
   },
   description: "Create drafts, books, and chapters in StoryStream.",
   robots: {
