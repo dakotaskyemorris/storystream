@@ -23,7 +23,7 @@ export async function generateMetadata({
 
   return {
     title: {
-      absolute: `@${username} on StoryStream`,
+      absolute: "StoryStream",
     },
     description: `Read writing and profile updates from @${username} on StoryStream.`,
     alternates: {
