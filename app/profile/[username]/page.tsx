@@ -5,9 +5,6 @@ type ProfilePageProps = {
   params: Promise<{ username: string }>;
 };
 
-export const dynamicParams = false;
-export const dynamic = "force-static";
-
 export async function generateStaticParams(): Promise<{ username: string }[]> {
   return [
     { username: "moon_writer" },

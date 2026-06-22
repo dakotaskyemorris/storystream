@@ -1383,7 +1383,7 @@ function AuthPanel({ me }: { me: Profile | null }) {
     <form onSubmit={submit} className="glass rounded-[28px] p-5">
       <h2 className="text-xl font-semibold">Join StoryStream</h2>
       <p className="mt-1 text-sm leading-6 text-stone-600">
-        Password auth is local and Convex-backed.
+        Password auth is backed by the live StoryStream database.
       </p>
       <TextInput label="Email" value={email} onChange={setEmail} />
       <TextInput label="Password" value={password} onChange={setPassword} type="password" />
