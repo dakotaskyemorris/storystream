@@ -3,7 +3,7 @@ import { StoryStreamClient } from "./story-stream-client";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "StoryStream - Creative writing community",
+    absolute: "StoryStream",
   },
   description:
     "StoryStream is a creative community for writers, readers, dreamers, and storytellers.",
