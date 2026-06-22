@@ -59,8 +59,20 @@ const navItems = [
 ];
 
 const genres = ["Poetry", "Fantasy", "Sci-Fi", "Journals", "Adventure"];
+const isStaticDemo = process.env.NEXT_PUBLIC_STATIC_DEMO === "true";
 
 export function StoryStreamClient({
+  view = "home",
+  username,
+}: StoryStreamClientProps) {
+  if (isStaticDemo) {
+    return <StaticStoryStreamClient view={view} username={username} />;
+  }
+
+  return <LiveStoryStreamClient view={view} username={username} />;
+}
+
+function LiveStoryStreamClient({
   view = "home",
   username,
 }: StoryStreamClientProps) {
@@ -127,6 +139,594 @@ export function StoryStreamClient({
         </section>
       </div>
     </main>
+  );
+}
+
+const staticProfiles: Profile[] = [
+  {
+    _id: "profile_moon_writer" as Id<"profiles">,
+    username: "moon_writer",
+    displayName: "Moon Writer",
+    avatarUrl: null,
+    bio: "Writing soft sci-fi, midnight poems, and maps for imaginary cities.",
+    favoriteGenres: ["Poetry", "Sci-Fi", "Worldbuilding"],
+    tokenBalance: 38,
+    followersCount: 2,
+    followingCount: 1,
+    postsCount: 1,
+    booksCount: 0,
+    writingStreak: 6,
+    isAdmin: true,
+  },
+  {
+    _id: "profile_forestdreams" as Id<"profiles">,
+    username: "forestdreams",
+    displayName: "Forest Dreams",
+    avatarUrl: null,
+    bio: "Journals, folklore, and quiet character studies.",
+    favoriteGenres: ["Fantasy", "Journals", "Folklore"],
+    tokenBalance: 34,
+    followersCount: 1,
+    followingCount: 1,
+    postsCount: 1,
+    booksCount: 0,
+    writingStreak: 3,
+    isAdmin: false,
+  },
+  {
+    _id: "profile_dragonpen" as Id<"profiles">,
+    username: "dragonpen",
+    displayName: "Dragon Pen",
+    avatarUrl: null,
+    bio: "Serial chapters and heroic adventures, carefully brewed.",
+    favoriteGenres: ["Adventure", "Fantasy", "Fan Fiction"],
+    tokenBalance: 32,
+    followersCount: 1,
+    followingCount: 2,
+    postsCount: 0,
+    booksCount: 1,
+    writingStreak: 2,
+    isAdmin: false,
+  },
+];
+
+const staticYou: Profile = {
+  _id: "profile_you" as Id<"profiles">,
+  username: "you",
+  displayName: "You",
+  avatarUrl: null,
+  bio: "Your local demo writing space.",
+  favoriteGenres: ["Stories"],
+  tokenBalance: 30,
+  followersCount: 0,
+  followingCount: 0,
+  postsCount: 0,
+  booksCount: 0,
+  writingStreak: 1,
+  isAdmin: false,
+};
+
+const staticPosts: FeedPost[] = [
+  {
+    author: staticProfiles[0],
+    post: {
+      _id: "post_lanterns" as Id<"posts">,
+      title: "Lanterns for Borrowed Stars",
+      kind: "story",
+      excerpt:
+        "The city kept its constellations in jars above the train station. Every evening, children lined up to borrow one bright star.",
+      genre: "Sci-Fi",
+      visibility: "public",
+      status: "published",
+      likesCount: 18,
+      commentsCount: 1,
+    },
+  },
+  {
+    author: staticProfiles[1],
+    post: {
+      _id: "post_pocket_river" as Id<"posts">,
+      title: "Pocket River",
+      kind: "poem",
+      excerpt:
+        "I put a river in my pocket and walked until the stones remembered every name I never said aloud.",
+      genre: "Poetry",
+      visibility: "public",
+      status: "published",
+      likesCount: 9,
+      commentsCount: 0,
+    },
+  },
+];
+
+const staticBook: DraftBook = {
+  _id: "book_ash_orchard" as Id<"books">,
+  title: "Ash Orchard",
+  description:
+    "A young cartographer maps a kingdom where every burned tree becomes a door.",
+  genres: ["Fantasy", "Adventure"],
+  visibility: "public",
+  chaptersCount: 2,
+  subscribersCount: 37,
+};
+
+const staticBooks: FeedBook[] = [
+  {
+    book: staticBook,
+    author: staticProfiles[2],
+    chapters: [
+      {
+        _id: "chapter_smoke" as Id<"chapters">,
+        bookId: staticBook._id,
+        chapterNumber: 1,
+        title: "The Door in the Smoke",
+        excerpt: "The first tree burned blue, which meant it was waiting for a question.",
+        visibility: "public",
+        status: "published",
+        likesCount: 22,
+        commentsCount: 0,
+      },
+      {
+        _id: "chapter_ash" as Id<"chapters">,
+        bookId: staticBook._id,
+        chapterNumber: 2,
+        title: "Map of Warm Ash",
+        excerpt:
+          "By morning, the map had rewritten itself with paths no living person had walked.",
+        visibility: "followers",
+        status: "published",
+        likesCount: 11,
+        commentsCount: 0,
+      },
+    ],
+  },
+];
+
+const localPiecesKey = "storystream-demo-pieces";
+
+function StaticStoryStreamClient({
+  view = "home",
+  username,
+}: StoryStreamClientProps) {
+  const [localPieces, setLocalPieces] = useState<DraftPost[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+    try {
+      const stored = window.localStorage.getItem(localPiecesKey);
+      if (stored) {
+        return JSON.parse(stored) as DraftPost[];
+      }
+    } catch {
+      return [];
+    }
+    return [];
+  });
+
+  function saveLocalPieces(nextPieces: DraftPost[]) {
+    setLocalPieces(nextPieces);
+    window.localStorage.setItem(localPiecesKey, JSON.stringify(nextPieces));
+  }
+
+  const localFeed = localPieces.map((post) => ({ post, author: staticYou }));
+  const posts = [...localFeed, ...staticPosts];
+  const books = staticBooks;
+  const selectedProfile =
+    username === staticYou.username
+      ? staticYou
+      : staticProfiles.find((profile) => profile.username === username);
+  const profileBundle = selectedProfile
+    ? {
+        author: selectedProfile,
+        posts: posts
+          .filter((item) => item.author.username === selectedProfile.username)
+          .map((item) => item.post),
+      }
+    : null;
+  const stats = [
+    { label: "Public pieces", value: posts.length },
+    { label: "Open books", value: books.length },
+    { label: "Writers here", value: staticProfiles.length },
+    { label: "Demo tokens", value: staticYou.tokenBalance },
+  ];
+
+  return (
+    <main className="bg-stage relative min-h-screen overflow-hidden text-stone-950">
+      <div className="grain pointer-events-none fixed inset-0 opacity-55" />
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8">
+        <TopBar me={null} active={view} openReportCount={0} />
+        <section className="grid gap-5 lg:grid-cols-[260px_1fr_320px]">
+          <aside className="hidden lg:block">
+            <NavRail active={view} me={null} openReportCount={0} />
+          </aside>
+          <section className="min-w-0">
+            {view === "home" && (
+              <StaticHomeView posts={posts} stats={stats} primaryPost={posts[0]} />
+            )}
+            {view === "discover" && <StaticDiscoverView posts={posts} />}
+            {view === "digest" && <StaticDigestView posts={posts} />}
+            {view === "studio" && (
+              <StaticStudioView pieces={localPieces} onSave={saveLocalPieces} />
+            )}
+            {view === "books" && <StaticBooksView books={books} />}
+            {view === "safety" && <SafetyView />}
+            {view === "moderation" && (
+              <EmptyState
+                title="Demo mode"
+                body="The public demo has no moderation queue. Live accounts and moderation come with the hosted backend."
+              />
+            )}
+            {view === "profile" && <StaticProfileView bundle={profileBundle} username={username} />}
+          </section>
+          <aside className="flex flex-col gap-5">
+            <StaticDemoPanel />
+            <StaticTokenPanel />
+            <StaticWritersPanel writers={staticProfiles} />
+          </aside>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function StaticHomeView({
+  posts,
+  stats,
+  primaryPost,
+}: {
+  posts: FeedPost[];
+  stats: { label: string; value: number }[];
+  primaryPost: FeedPost | undefined;
+}) {
+  return (
+    <div className="flex flex-col gap-5">
+      <section className="glass-strong fluted overflow-hidden rounded-[32px] p-6 sm:p-8">
+        <div className="grid gap-7 xl:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/72 px-3 py-2 text-sm font-semibold text-stone-700">
+              <Sparkles className="size-4 text-teal-700" />
+              Public demo
+            </div>
+            <h1 className="max-w-2xl text-5xl font-semibold tracking-tight text-stone-950 sm:text-6xl">
+              StoryStream
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-stone-700">
+              Write a piece in Studio, browse demo stories, and explore the public
+              version of the creative writing community.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link className="button-dark" href="/studio">
+                <PenLine className="size-4" />
+                Write
+              </Link>
+              <Link className="button-light" href="/discover">
+                <Eye className="size-4" />
+                Explore
+              </Link>
+            </div>
+          </div>
+          <StaticFeaturedPiece item={primaryPost} />
+        </div>
+      </section>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <div key={stat.label} className="glass rounded-[24px] p-5">
+            <div className="text-3xl font-semibold">{stat.value}</div>
+            <div className="mt-1 text-sm font-medium text-stone-600">{stat.label}</div>
+          </div>
+        ))}
+      </section>
+      <StaticDiscoverView posts={posts.slice(0, 6)} compact />
+    </div>
+  );
+}
+
+function StaticFeaturedPiece({ item }: { item?: FeedPost }) {
+  if (!item) {
+    return (
+      <div className="glass rounded-[28px] p-6">
+        <p className="text-sm font-semibold text-stone-600">Latest writing</p>
+        <p className="mt-3 text-2xl font-semibold">Start the stream.</p>
+      </div>
+    );
+  }
+
+  return (
+    <article className="glass rounded-[28px] p-6">
+      <div className="flex items-center justify-between gap-3">
+        <Pill>{item.post.genre}</Pill>
+        <span className="text-sm text-stone-600">@{item.author.username}</span>
+      </div>
+      <h2 className="mt-5 text-3xl font-semibold tracking-tight">{item.post.title}</h2>
+      <p className="mt-4 leading-7 text-stone-700">{item.post.excerpt}</p>
+      <div className="mt-6 flex items-center gap-4 text-sm font-semibold text-stone-600">
+        <span className="inline-flex items-center gap-1">
+          <Heart className="size-4" /> {item.post.likesCount}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <MessageCircle className="size-4" /> {item.post.commentsCount}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function StaticDiscoverView({
+  posts,
+  compact = false,
+}: {
+  posts: FeedPost[];
+  compact?: boolean;
+}) {
+  return (
+    <section className="flex flex-col gap-4">
+      <SectionHeader
+        eyebrow="Public demo"
+        title={compact ? "Fresh from the stream" : "Discover writing"}
+        icon={<Search className="size-5" />}
+      />
+      <div className="flex flex-wrap gap-2">
+        {genres.map((genre) => (
+          <span
+            key={genre}
+            className="rounded-full bg-white/70 px-3 py-2 text-sm font-semibold text-stone-700"
+          >
+            {genre}
+          </span>
+        ))}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        {posts.map((item) => (
+          <StaticPostCard key={item.post._id} item={item} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StaticPostCard({ item }: { item: FeedPost }) {
+  const [likes, setLikes] = useState(item.post.likesCount);
+
+  return (
+    <article className="glass rounded-[28px] p-5">
+      <div className="flex items-center justify-between gap-3">
+        <Link href={`/profile/${item.author.username}`} className="flex items-center gap-3">
+          <Avatar profile={item.author} />
+          <span className="font-semibold">@{item.author.username}</span>
+        </Link>
+        <Pill>{item.post.visibility}</Pill>
+      </div>
+      <h3 className="mt-5 text-2xl font-semibold tracking-tight">{item.post.title}</h3>
+      <p className="mt-3 leading-7 text-stone-700">{item.post.excerpt}</p>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <Pill>{item.post.genre}</Pill>
+          <Pill>{item.post.kind}</Pill>
+        </div>
+        <button
+          className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 text-sm font-semibold"
+          onClick={() => setLikes((value) => value + 1)}
+        >
+          <Heart className="size-4" />
+          {likes}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function StaticDigestView({ posts }: { posts: FeedPost[] }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <SectionHeader
+        eyebrow="Demo circle"
+        title="Friends Digest"
+        icon={<Radio className="size-5" />}
+      />
+      <div className="grid gap-4">
+        {posts.map((item) => (
+          <StaticPostCard key={`digest-${item.post._id}`} item={item} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StaticStudioView({
+  pieces,
+  onSave,
+}: {
+  pieces: DraftPost[];
+  onSave: (pieces: DraftPost[]) => void;
+}) {
+  const [title, setTitle] = useState("A small door in the rain");
+  const [body, setBody] = useState(
+    "Write the first lines here. This public demo saves only in your browser.",
+  );
+  const [visibility, setVisibility] = useState<"private" | "followers" | "public">("private");
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const excerpt = body.trim().slice(0, 180) || "Untitled local draft.";
+    const nextPiece: DraftPost = {
+      _id: `local_${Date.now()}` as Id<"posts">,
+      title: title.trim() || "Untitled",
+      kind: "story",
+      excerpt,
+      genre: "Demo",
+      visibility,
+      status: "published",
+      likesCount: 0,
+      commentsCount: 0,
+    };
+    onSave([nextPiece, ...pieces]);
+  }
+
+  return (
+    <section className="flex flex-col gap-5">
+      <SectionHeader
+        eyebrow="Saved on this device"
+        title="Writing Studio"
+        icon={<PenLine className="size-5" />}
+      />
+      <form onSubmit={submit} className="glass rounded-[28px] p-5">
+        <h3 className="text-xl font-semibold">New piece</h3>
+        <TextInput label="Title" value={title} onChange={setTitle} />
+        <TextArea label="Words" value={body} onChange={setBody} />
+        <Segmented
+          value={visibility}
+          onChange={setVisibility}
+          options={[
+            { value: "private", label: "Private", icon: Lock },
+            { value: "followers", label: "Followers", icon: UsersRound },
+            { value: "public", label: "Public", icon: Eye },
+          ]}
+        />
+        <button className="button-dark mt-4 w-full">
+          <BadgePlus className="size-4" />
+          Save demo piece
+        </button>
+      </form>
+      <LibraryList title="Your local pieces" items={pieces} />
+    </section>
+  );
+}
+
+function StaticBooksView({ books }: { books: FeedBook[] }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <SectionHeader
+        eyebrow="Serial worlds"
+        title="Books and chapters"
+        icon={<BookOpen className="size-5" />}
+      />
+      <div className="grid gap-4 xl:grid-cols-2">
+        {books.map(({ book, author, chapters }) => (
+          <article key={book._id} className="glass rounded-[28px] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <Pill>{book.genres[0] ?? "Book"}</Pill>
+              <Link href={`/profile/${author.username}`} className="text-sm font-semibold text-stone-600">
+                @{author.username}
+              </Link>
+            </div>
+            <h3 className="text-2xl font-semibold">{book.title}</h3>
+            <p className="mt-3 leading-7 text-stone-700">{book.description}</p>
+            <div className="mt-5 flex gap-3 text-sm font-semibold text-stone-600">
+              <span>{book.chaptersCount} chapters</span>
+              <span>{book.subscribersCount} subscribers</span>
+            </div>
+            <div className="mt-5 flex flex-col gap-3">
+              {chapters.map((chapter) => (
+                <div key={chapter._id} className="rounded-2xl bg-white/60 p-4">
+                  <Pill>{book.title}</Pill>
+                  <h4 className="mt-3 text-xl font-semibold">
+                    Chapter {chapter.chapterNumber}: {chapter.title}
+                  </h4>
+                  <p className="mt-2 leading-7 text-stone-700">{chapter.excerpt}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StaticProfileView({
+  bundle,
+  username,
+}: {
+  bundle: ProfileBundle | null;
+  username?: string;
+}) {
+  if (!bundle) {
+    return (
+      <EmptyState
+        title="Profile not found"
+        body={`No demo profile exists for @${username ?? "writer"} yet.`}
+      />
+    );
+  }
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="glass-strong rounded-[32px] p-6">
+        <div className="flex flex-wrap items-center gap-5">
+          <Avatar profile={bundle.author} large />
+          <div>
+            <h1 className="text-4xl font-semibold tracking-tight">{bundle.author.displayName}</h1>
+            <p className="mt-1 text-stone-600">@{bundle.author.username}</p>
+            <p className="mt-3 max-w-2xl leading-7 text-stone-700">{bundle.author.bio}</p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {bundle.author.favoriteGenres.map((genre) => (
+            <Pill key={genre}>{genre}</Pill>
+          ))}
+        </div>
+      </div>
+      <StaticDiscoverView
+        posts={bundle.posts.map((post) => ({ post, author: bundle.author }))}
+        compact
+      />
+    </section>
+  );
+}
+
+function StaticDemoPanel() {
+  return (
+    <div className="glass rounded-[28px] p-5">
+      <h2 className="text-xl font-semibold">StoryStream demo</h2>
+      <p className="mt-3 text-sm leading-6 text-stone-600">
+        This public version is ready to explore. Studio saves demo writing in
+        this browser until the live backend is connected.
+      </p>
+      <Link href="/studio" className="button-dark mt-4 w-full justify-center">
+        <PenLine className="size-4" />
+        Write
+      </Link>
+    </div>
+  );
+}
+
+function StaticTokenPanel() {
+  return (
+    <div className="glass rounded-[28px] p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">StoryTokens</h2>
+        <span className="rounded-full bg-stone-950 px-3 py-1 text-sm font-semibold text-white">
+          {staticYou.tokenBalance}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-stone-600">
+        Demo tokens show how publishing and thoughtful participation will work
+        on the full site.
+      </p>
+    </div>
+  );
+}
+
+function StaticWritersPanel({ writers }: { writers: Profile[] }) {
+  return (
+    <div className="glass rounded-[28px] p-5">
+      <h2 className="text-xl font-semibold">Writers to read</h2>
+      <div className="mt-4 flex flex-col gap-3">
+        {writers.map((writer) => (
+          <Link
+            key={writer._id}
+            href={`/profile/${writer.username}`}
+            className="flex items-center gap-3 rounded-2xl bg-white/60 p-3"
+          >
+            <Avatar profile={writer} />
+            <span>
+              <span className="block font-semibold">{writer.displayName}</span>
+              <span className="text-sm text-stone-600">@{writer.username}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 
