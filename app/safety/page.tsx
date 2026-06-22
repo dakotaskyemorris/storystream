@@ -3,7 +3,7 @@ import { StoryStreamClient } from "../story-stream-client";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Safety center | StoryStream",
+    absolute: "StoryStream",
   },
   description:
     "Learn how StoryStream supports privacy, reporting, blocking, muting, and safer creative sharing.",
