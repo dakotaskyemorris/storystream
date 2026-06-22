@@ -3,7 +3,7 @@ import { StoryStreamClient } from "../story-stream-client";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Moderation | StoryStream",
+    absolute: "StoryStream",
   },
   robots: {
     index: false,
