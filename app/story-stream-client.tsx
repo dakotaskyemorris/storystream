@@ -288,20 +288,22 @@ function StaticStoryStreamClient({
   view = "home",
   username,
 }: StoryStreamClientProps) {
-  const [localPieces, setLocalPieces] = useState<DraftPost[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = window.localStorage.getItem(localPiecesKey);
-      if (stored) {
-        return JSON.parse(stored) as DraftPost[];
+  const [localPieces, setLocalPieces] = useState<DraftPost[]>([]);
+
+  useEffect(() => {
+    const loadPieces = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(localPiecesKey);
+        if (stored) {
+          setLocalPieces(JSON.parse(stored) as DraftPost[]);
+        }
+      } catch {
+        setLocalPieces([]);
       }
-    } catch {
-      return [];
-    }
-    return [];
-  });
+    }, 0);
+
+    return () => window.clearTimeout(loadPieces);
+  }, []);
 
   function saveLocalPieces(nextPieces: DraftPost[]) {
     setLocalPieces(nextPieces);
