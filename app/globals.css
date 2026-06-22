@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f4ef;
+  --foreground: #171717;
+  --ink-muted: #655f58;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --line: rgba(48, 43, 38, 0.12);
+  --accent: #0f766e;
+  --accent-2: #b45309;
+  --soft-blue: #dbeafe;
+  --soft-green: #d9f99d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.22);
+}
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 20px 60px rgba(40, 35, 30, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+.glass-strong {
+  background: var(--glass-strong);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 16px 50px rgba(25, 30, 35, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(28px) saturate(170%);
+}
+
+.fluted {
+  background-image:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.2)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.24) 0,
+      rgba(255, 255, 255, 0.24) 1px,
+      rgba(255, 255, 255, 0) 1px,
+      rgba(255, 255, 255, 0) 9px
+    );
+}
+
+.bg-stage {
+  background:
+    radial-gradient(circle at 14% 12%, rgba(217, 249, 157, 0.72), transparent 27rem),
+    radial-gradient(circle at 82% 16%, rgba(219, 234, 254, 0.9), transparent 28rem),
+    linear-gradient(135deg, #faf7f0 0%, #eef7f4 47%, #f7f0e6 100%);
+}
+
+.grain {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.button-dark,
+.button-light {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.button-dark {
+  background: #171717;
+  color: white;
+}
+
+.button-light {
+  background: rgba(255, 255, 255, 0.72);
+  color: #171717;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.button-dark:hover,
+.button-light:hover {
+  transform: translateY(-1px);
+}
+
+.button-dark:disabled,
+.button-light:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}
+
+.mini-button,
+.safety-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.mini-button {
+  min-height: 2.25rem;
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.5rem 0.75rem;
+  color: #171717;
+}
+
+.safety-button {
+  width: 100%;
+  justify-content: flex-start;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.7rem 0.85rem;
+  color: #44403c;
+}
+
+.mini-button:disabled,
+.safety-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
