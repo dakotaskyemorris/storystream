@@ -132,7 +132,7 @@ function LiveStoryStreamClient({
             )}
           </section>
           <aside className="flex flex-col gap-5">
-            <AuthPanel me={me ?? null} />
+            {!(view === "studio" && !me) && <AuthPanel me={me ?? null} />}
             <TokenPanel me={me ?? null} />
             <WritersPanel writers={suggested} me={me ?? null} />
           </aside>
@@ -1000,11 +1000,17 @@ function StudioView({
         icon={<PenLine className="size-5" />}
       />
       {!me ? (
-        <EmptyState title="Create a profile first" body="Use the sign-in panel to join, then choose your username and begin writing." />
+        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+          <AuthPanel me={null} />
+          <EmptyState
+            title="Start with your profile"
+            body="Create your profile here, then the book form opens on this page."
+          />
+        </div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
-          <WriterForm />
+        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
           <BookForm />
+          <WriterForm />
         </div>
       )}
       <div className="grid gap-5 xl:grid-cols-2">
@@ -1072,30 +1078,47 @@ function BookForm() {
   const createBook = useMutation(api.books.createBook);
   const addChapter = useMutation(api.books.addChapter);
   const publishChapter = useMutation(api.books.publishChapter);
-  const [title, setTitle] = useState("The Glass Orchard");
-  const [chapter, setChapter] = useState("Chapter One");
+  const [title, setTitle] = useState("");
+  const [genre, setGenre] = useState("");
+  const [description, setDescription] = useState("");
+  const [chapter, setChapter] = useState("");
+  const [body, setBody] = useState("");
+  const [visibility, setVisibility] = useState<"private" | "followers" | "public">("private");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setNotice("");
     setBusy(true);
     try {
       const bookId = await createBook({
         title,
-        description: "A long-form project started in StoryStream.",
+        description: description.trim() || "A StoryStream book.",
         coverUrl: null,
-        genres: ["Fantasy"],
+        genres: [genre.trim() || "General"],
       });
-      const chapterId = await addChapter({
-        bookId,
-        title: chapter,
-        body: "Begin your chapter here, one scene at a time.",
-      });
-      await publishChapter({
-        chapterId,
-        visibility: "followers",
-        commentsMode: "followers",
-      });
+      if (body.trim()) {
+        const chapterId = await addChapter({
+          bookId,
+          title: chapter.trim() || "Chapter 1",
+          body,
+        });
+        if (visibility !== "private") {
+          await publishChapter({
+            chapterId,
+            visibility,
+            commentsMode: visibility === "public" ? "everyone" : "followers",
+          });
+        }
+      }
+      setTitle("");
+      setGenre("");
+      setDescription("");
+      setChapter("");
+      setBody("");
+      setVisibility("private");
+      setNotice("Book started.");
     } finally {
       setBusy(false);
     }
@@ -1103,13 +1126,55 @@ function BookForm() {
 
   return (
     <form onSubmit={submit} className="glass rounded-[28px] p-5">
-      <h3 className="text-xl font-semibold">New book</h3>
-      <TextInput label="Book title" value={title} onChange={setTitle} />
-      <TextInput label="First chapter" value={chapter} onChange={setChapter} />
-      <button className="button-light mt-4 w-full" disabled={busy}>
+      <div className="flex items-center gap-2">
         <BookOpen className="size-4" />
-        {busy ? "Creating..." : "Create book"}
+        <h3 className="text-xl font-semibold">Start a book</h3>
+      </div>
+      <TextInput
+        label="Book title"
+        value={title}
+        onChange={setTitle}
+        placeholder="My StoryStream book"
+        required
+      />
+      <TextInput
+        label="Genre"
+        value={genre}
+        onChange={setGenre}
+        placeholder="Fantasy, poetry, journal..."
+      />
+      <TextArea
+        label="Book description"
+        value={description}
+        onChange={setDescription}
+        placeholder="What is this book about?"
+      />
+      <TextInput
+        label="First chapter title"
+        value={chapter}
+        onChange={setChapter}
+        placeholder="Chapter 1"
+      />
+      <TextArea
+        label="First chapter words"
+        value={body}
+        onChange={setBody}
+        placeholder="Start writing the first chapter here."
+      />
+      <Segmented
+        value={visibility}
+        onChange={setVisibility}
+        options={[
+          { value: "private", label: "Private", icon: Lock },
+          { value: "followers", label: "Followers", icon: UsersRound },
+          { value: "public", label: "Public", icon: Eye },
+        ]}
+      />
+      <button className="button-dark mt-4 w-full" disabled={busy}>
+        <BookOpen className="size-4" />
+        {busy ? "Starting..." : "Start book"}
       </button>
+      {notice && <p className="mt-3 text-sm font-semibold text-teal-800">{notice}</p>}
     </form>
   );
 }
@@ -1944,7 +2009,9 @@ function BookList({ title, books }: { title: string; books: DraftBook[] }) {
         {books.map((book) => (
           <div key={book._id} className="rounded-2xl bg-white/60 p-3">
             <div className="font-semibold">{book.title}</div>
-            <div className="text-sm text-stone-600">{book.chaptersCount} chapters</div>
+            <div className="text-sm text-stone-600">
+              {book.chaptersCount} chapters / {book.status ?? "draft"} / {book.visibility}
+            </div>
           </div>
         ))}
       </div>
@@ -1967,6 +2034,7 @@ function TextInput({
   onChange,
   type = "text",
   autoComplete,
+  placeholder,
   required = false,
 }: {
   label: string;
@@ -1974,6 +2042,7 @@ function TextInput({
   onChange: (value: string) => void;
   type?: string;
   autoComplete?: string;
+  placeholder?: string;
   required?: boolean;
 }) {
   return (
@@ -1984,6 +2053,7 @@ function TextInput({
         type={type}
         value={value}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         required={required}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -1995,10 +2065,14 @@ function TextArea({
   label,
   value,
   onChange,
+  placeholder,
+  required = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <label className="mt-4 block">
@@ -2006,6 +2080,8 @@ function TextArea({
       <textarea
         className="mt-2 min-h-36 w-full resize-y rounded-2xl border border-white/70 bg-white/72 px-4 py-3 leading-7 outline-none focus:border-teal-700"
         value={value}
+        placeholder={placeholder}
+        required={required}
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
@@ -2104,6 +2180,7 @@ type DraftBook = {
   description: string;
   genres: string[];
   visibility: "private" | "followers" | "public";
+  status?: "draft" | "published" | "archived";
   chaptersCount: number;
   subscribersCount: number;
 };
