@@ -170,7 +170,15 @@ export const discover = query({
       const visibleChapters = [];
       for (const chapter of chapters) {
         if (await canViewByVisibility(ctx, viewer, chapter.authorId, chapter.visibility)) {
-          visibleChapters.push(chapter);
+          const like = viewer
+            ? await ctx.db
+                .query("likes")
+                .withIndex("by_profileId_and_chapterId", (q) =>
+                  q.eq("profileId", viewer._id).eq("chapterId", chapter._id),
+                )
+                .unique()
+            : null;
+          visibleChapters.push({ ...chapter, viewerHasLiked: like !== null });
         }
       }
       results.push({ book, author, chapters: visibleChapters });

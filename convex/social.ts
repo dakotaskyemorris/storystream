@@ -241,7 +241,18 @@ export const friendsDigest = query({
         .take(5);
       for (const post of posts) {
         if (await canViewByVisibility(ctx, viewer, post.authorId, post.visibility)) {
-          digest.push({ type: "post", createdAt: post.publishedAt ?? post.updatedAt, post, author });
+          const like = await ctx.db
+            .query("likes")
+            .withIndex("by_profileId_and_postId", (q) =>
+              q.eq("profileId", viewer._id).eq("postId", post._id),
+            )
+            .unique();
+          digest.push({
+            type: "post",
+            createdAt: post.publishedAt ?? post.updatedAt,
+            post: { ...post, viewerHasLiked: like !== null },
+            author,
+          });
         }
       }
       const chapters = await ctx.db
@@ -254,10 +265,16 @@ export const friendsDigest = query({
       for (const chapter of chapters) {
         if (await canViewByVisibility(ctx, viewer, chapter.authorId, chapter.visibility)) {
           const book = await ctx.db.get(chapter.bookId);
+          const like = await ctx.db
+            .query("likes")
+            .withIndex("by_profileId_and_chapterId", (q) =>
+              q.eq("profileId", viewer._id).eq("chapterId", chapter._id),
+            )
+            .unique();
           digest.push({
             type: "chapter",
             createdAt: chapter.publishedAt ?? chapter.updatedAt,
-            chapter,
+            chapter: { ...chapter, viewerHasLiked: like !== null },
             book,
             author,
           });

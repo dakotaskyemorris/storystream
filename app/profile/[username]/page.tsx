@@ -6,6 +6,10 @@ type ProfilePageProps = {
 };
 
 export async function generateStaticParams(): Promise<{ username: string }[]> {
+  if (process.env.GITHUB_PAGES !== "true") {
+    return [];
+  }
+
   return [
     { username: "moon_writer" },
     { username: "forestdreams" },

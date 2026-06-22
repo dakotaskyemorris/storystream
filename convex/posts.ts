@@ -139,7 +139,15 @@ export const discover = query({
         }
       }
       if (await canViewByVisibility(ctx, viewer, post.authorId, post.visibility)) {
-        results.push({ post, author });
+        const like = viewer
+          ? await ctx.db
+              .query("likes")
+              .withIndex("by_profileId_and_postId", (q) =>
+                q.eq("profileId", viewer._id).eq("postId", post._id),
+              )
+              .unique()
+          : null;
+        results.push({ post: { ...post, viewerHasLiked: like !== null }, author });
       }
     }
     return results;
@@ -196,7 +204,15 @@ export const byProfile = query({
     const visible = [];
     for (const post of posts) {
       if (await canViewByVisibility(ctx, viewer, author._id, post.visibility)) {
-        visible.push(post);
+        const like = viewer
+          ? await ctx.db
+              .query("likes")
+              .withIndex("by_profileId_and_postId", (q) =>
+                q.eq("profileId", viewer._id).eq("postId", post._id),
+              )
+              .unique()
+          : null;
+        visible.push({ ...post, viewerHasLiked: like !== null });
       }
     }
     return { author, posts: visible };

@@ -21,21 +21,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build static site
-        env:
-          GITHUB_PAGES: "true"
-          NEXT_PUBLIC_STATIC_DEMO: "true"
-          NEXT_PUBLIC_SITE_URL: "https://dakotaskyemorris.github.io/storystream"
-        run: npm run build
+      - name: Create redirect to live site
+        run: |
+          mkdir -p out
+          cat > out/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <meta name="robots" content="noindex">
+              <link rel="canonical" href="https://storystream-five.vercel.app/">
+              <meta http-equiv="refresh" content="0; url=https://storystream-five.vercel.app/">
+              <title>StoryStream</title>
+              <script>
+                const path = window.location.pathname.replace(/^\/storystream\/?/, "/");
+                window.location.replace(`https://storystream-five.vercel.app${path}${window.location.search}${window.location.hash}`);
+              </script>
+            </head>
+            <body>
+              <p><a href="https://storystream-five.vercel.app/">StoryStream</a></p>
+            </body>
+          </html>
+          HTML
+          cp out/index.html out/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

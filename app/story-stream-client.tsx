@@ -195,7 +195,7 @@ const staticYou: Profile = {
   username: "you",
   displayName: "You",
   avatarUrl: null,
-  bio: "Your local demo writing space.",
+  bio: "Your preview writing space.",
   favoriteGenres: ["Stories"],
   tokenBalance: 30,
   followersCount: 0,
@@ -329,7 +329,7 @@ function StaticStoryStreamClient({
     { label: "Public pieces", value: posts.length },
     { label: "Open books", value: books.length },
     { label: "Writers here", value: staticProfiles.length },
-    { label: "Demo tokens", value: staticYou.tokenBalance },
+    { label: "Your tokens", value: staticYou.tokenBalance },
   ];
 
   return (
@@ -354,8 +354,8 @@ function StaticStoryStreamClient({
             {view === "safety" && <SafetyView />}
             {view === "moderation" && (
               <EmptyState
-                title="Demo mode"
-                body="The public demo has no moderation queue. Live accounts and moderation come with the hosted backend."
+                title="Moderation opens on the live site"
+                body="This preview does not include a moderation queue."
               />
             )}
             {view === "profile" && <StaticProfileView bundle={profileBundle} username={username} />}
@@ -387,14 +387,14 @@ function StaticHomeView({
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/72 px-3 py-2 text-sm font-semibold text-stone-700">
               <Sparkles className="size-4 text-teal-700" />
-              Public demo
+              StoryStream preview
             </div>
             <h1 className="max-w-2xl text-5xl font-semibold tracking-tight text-stone-950 sm:text-6xl">
               StoryStream
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-stone-700">
-              Write a piece in Studio, browse demo stories, and explore the public
-              version of the creative writing community.
+              Write a piece in Studio, browse starter stories, and explore the
+              creative writing community.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link className="button-dark" href="/studio">
@@ -463,7 +463,7 @@ function StaticDiscoverView({
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader
-        eyebrow="Public demo"
+        eyebrow="Preview"
         title={compact ? "Fresh from the stream" : "Discover writing"}
         icon={<Search className="size-5" />}
       />
@@ -487,7 +487,8 @@ function StaticDiscoverView({
 }
 
 function StaticPostCard({ item }: { item: FeedPost }) {
-  const [likes, setLikes] = useState(item.post.likesCount);
+  const [liked, setLiked] = useState(false);
+  const likes = item.post.likesCount + (liked ? 1 : 0);
 
   return (
     <article className="glass rounded-[28px] p-5">
@@ -506,8 +507,11 @@ function StaticPostCard({ item }: { item: FeedPost }) {
           <Pill>{item.post.kind}</Pill>
         </div>
         <button
-          className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 text-sm font-semibold"
-          onClick={() => setLikes((value) => value + 1)}
+          aria-pressed={liked}
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ${
+            liked ? "bg-rose-100 text-rose-800" : "bg-white/70"
+          }`}
+          onClick={() => setLiked((value) => !value)}
         >
           <Heart className="size-4" />
           {likes}
@@ -521,7 +525,7 @@ function StaticDigestView({ posts }: { posts: FeedPost[] }) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader
-        eyebrow="Demo circle"
+        eyebrow="Reading circle"
         title="Friends Digest"
         icon={<Radio className="size-5" />}
       />
@@ -543,19 +547,19 @@ function StaticStudioView({
 }) {
   const [title, setTitle] = useState("A small door in the rain");
   const [body, setBody] = useState(
-    "Write the first lines here. This public demo saves only in your browser.",
+    "Write the first lines here. This preview saves only in your browser.",
   );
   const [visibility, setVisibility] = useState<"private" | "followers" | "public">("private");
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const excerpt = body.trim().slice(0, 180) || "Untitled local draft.";
+    const excerpt = body.trim().slice(0, 180) || "Untitled preview draft.";
     const nextPiece: DraftPost = {
       _id: `local_${Date.now()}` as Id<"posts">,
       title: title.trim() || "Untitled",
       kind: "story",
       excerpt,
-      genre: "Demo",
+      genre: "Preview",
       visibility,
       status: "published",
       likesCount: 0,
@@ -586,10 +590,10 @@ function StaticStudioView({
         />
         <button className="button-dark mt-4 w-full">
           <BadgePlus className="size-4" />
-          Save demo piece
+          Save piece
         </button>
       </form>
-      <LibraryList title="Your local pieces" items={pieces} />
+      <LibraryList title="Your pieces" items={pieces} />
     </section>
   );
 }
@@ -646,7 +650,7 @@ function StaticProfileView({
     return (
       <EmptyState
         title="Profile not found"
-        body={`No demo profile exists for @${username ?? "writer"} yet.`}
+        body={`No preview profile exists for @${username ?? "writer"} yet.`}
       />
     );
   }
@@ -679,10 +683,9 @@ function StaticProfileView({
 function StaticDemoPanel() {
   return (
     <div className="glass rounded-[28px] p-5">
-      <h2 className="text-xl font-semibold">StoryStream demo</h2>
+      <h2 className="text-xl font-semibold">StoryStream preview</h2>
       <p className="mt-3 text-sm leading-6 text-stone-600">
-        This public version is ready to explore. Studio saves demo writing in
-        this browser until the live backend is connected.
+        This preview is ready to explore. Studio saves writing in this browser.
       </p>
       <Link href="/studio" className="button-dark mt-4 w-full justify-center">
         <PenLine className="size-4" />
@@ -702,8 +705,7 @@ function StaticTokenPanel() {
         </span>
       </div>
       <p className="mt-3 text-sm leading-6 text-stone-600">
-        Demo tokens show how publishing and thoughtful participation will work
-        on the full site.
+        Tokens show how publishing and thoughtful participation work.
       </p>
     </div>
   );
@@ -1314,9 +1316,9 @@ function AuthPanel({ me }: { me: Profile | null }) {
   const { signIn, signOut } = useAuthActions();
   const ensure = useMutation(api.profiles.ensure);
   const authStatus = useQuery(api.profiles.authStatus);
-  const [email, setEmail] = useState("writer@storystream.test");
-  const [password, setPassword] = useState("storystream");
-  const [username, setUsername] = useState("new_writer");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const [shouldCreateProfile, setShouldCreateProfile] = useState(false);
 
@@ -1385,9 +1387,29 @@ function AuthPanel({ me }: { me: Profile | null }) {
       <p className="mt-1 text-sm leading-6 text-stone-600">
         Password auth is backed by the live StoryStream database.
       </p>
-      <TextInput label="Email" value={email} onChange={setEmail} />
-      <TextInput label="Password" value={password} onChange={setPassword} type="password" />
-      <TextInput label="Username" value={username} onChange={setUsername} />
+      <TextInput
+        label="Email"
+        value={email}
+        onChange={setEmail}
+        type="email"
+        autoComplete="email"
+        required
+      />
+      <TextInput
+        label="Password"
+        value={password}
+        onChange={setPassword}
+        type="password"
+        autoComplete="new-password"
+        required
+      />
+      <TextInput
+        label="Username"
+        value={username}
+        onChange={setUsername}
+        autoComplete="username"
+        required
+      />
       <button className="button-dark mt-4 w-full" disabled={busy || isAuthenticated === undefined}>
         <UserRound className="size-4" />
         {busy
@@ -1458,6 +1480,7 @@ function WritersPanel({ writers, me }: { writers: Profile[]; me: Profile | null 
 function PostCard({ item, me }: { item: FeedPost; me: Profile | null }) {
   const like = useMutation(api.social.togglePostLike);
   const [busy, setBusy] = useState(false);
+  const liked = item.post.viewerHasLiked === true;
 
   async function toggleLike() {
     setBusy(true);
@@ -1490,12 +1513,15 @@ function PostCard({ item, me }: { item: FeedPost; me: Profile | null }) {
         <div className="flex flex-wrap items-center gap-2">
           <FollowButton target={item.author} me={me} compact />
           <button
-            className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 text-sm font-semibold disabled:opacity-60"
+            aria-pressed={liked}
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold disabled:opacity-60 ${
+              liked ? "bg-rose-100 text-rose-800" : "bg-white/70"
+            }`}
             onClick={() => void toggleLike()}
             disabled={!me || busy}
           >
             <Heart className="size-4" />
-            {item.post.likesCount}
+            {liked ? `Liked ${item.post.likesCount}` : item.post.likesCount}
           </button>
         </div>
       </div>
@@ -1538,6 +1564,7 @@ function ChapterCard({
 }) {
   const like = useMutation(api.social.toggleChapterLike);
   const [busy, setBusy] = useState(false);
+  const liked = chapter.viewerHasLiked === true;
 
   async function toggleLike() {
     setBusy(true);
@@ -1562,12 +1589,15 @@ function ChapterCard({
       <p className="mt-2 leading-7 text-stone-700">{chapter.excerpt}</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
-          className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-semibold disabled:opacity-60"
+          aria-pressed={liked}
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold disabled:opacity-60 ${
+            liked ? "bg-rose-100 text-rose-800" : "bg-white/80"
+          }`}
           disabled={!me || busy}
           onClick={() => void toggleLike()}
         >
           <Heart className="size-4" />
-          {chapter.likesCount}
+          {liked ? `Liked ${chapter.likesCount}` : chapter.likesCount}
         </button>
         <SafetyActions targetType="chapter" targetId={chapter._id} targetProfile={author} me={me} />
       </div>
@@ -1936,11 +1966,15 @@ function TextInput({
   value,
   onChange,
   type = "text",
+  autoComplete,
+  required = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
+  autoComplete?: string;
+  required?: boolean;
 }) {
   return (
     <label className="mt-4 block">
@@ -1949,6 +1983,8 @@ function TextInput({
         className="mt-2 w-full rounded-2xl border border-white/70 bg-white/72 px-4 py-3 outline-none focus:border-teal-700"
         type={type}
         value={value}
+        autoComplete={autoComplete}
+        required={required}
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
@@ -2059,6 +2095,7 @@ type DraftPost = {
   status: "draft" | "published" | "archived";
   likesCount: number;
   commentsCount: number;
+  viewerHasLiked?: boolean;
 };
 
 type DraftBook = {
@@ -2081,6 +2118,7 @@ type Chapter = {
   status: "draft" | "published" | "archived";
   likesCount: number;
   commentsCount: number;
+  viewerHasLiked?: boolean;
 };
 
 type FeedPost = {

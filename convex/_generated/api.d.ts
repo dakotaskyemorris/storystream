@@ -15,7 +15,6 @@ import type * as model from "../model.js";
 import type * as moderation from "../moderation.js";
 import type * as posts from "../posts.js";
 import type * as profiles from "../profiles.js";
-import type * as seed from "../seed.js";
 import type * as social from "../social.js";
 import type * as validators from "../validators.js";
 
@@ -33,7 +32,6 @@ declare const fullApi: ApiFromModules<{
   moderation: typeof moderation;
   posts: typeof posts;
   profiles: typeof profiles;
-  seed: typeof seed;
   social: typeof social;
   validators: typeof validators;
 }>;
