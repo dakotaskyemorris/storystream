@@ -3,7 +3,7 @@ import { StoryStreamClient } from "../story-stream-client";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Friends Digest | StoryStream",
+    absolute: "StoryStream",
   },
   description: "A private StoryStream feed of writing from people you follow.",
   robots: {
